@@ -1,44 +1,215 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>EMC</title>
-    </head>
-    <body>
-        <center>
-        <h1>Error Makes Clever 🚀</h1>
-        <h5>Training | Food | Freee </h5>
-        <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Doloremque illo illum eaque voluptates ipsum dicta ab rerum incidunt quod officiis, repellat quidem adipisci natus culpa earum nesciunt expedita, atque ex!</p>
-        </center >
-        <hr>
-        <center>
-        <iframe width="560" height="315" src="https://www.youtube.com/embed/FYErehuSuuw?si=CejYzJSCvVoETpYf" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-        </center>
-            <p>Are you ready to kickstart your career in web development? Look no further! In this comprehensive YouTube video, we've got you covered with everything you need to know about HTML – the backbone of web design. Whether you're a beginner or just looking to refresh your skills, our video is tailored to guide you through two essential sections for building a strong foundation.</p>
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Possimus iste, deleniti fuga consequuntur, praesentium ducimus ab minus inventore optio consequatur est. Eos doloribus ea a veritatis in. Magnam quis ipsa iste aut consectetur laboriosam temporibus? Minus voluptate quos quod consequatur dolorem corrupti at recusandae porro. Beatae dolore illum quo incidunt?</p>
-        <h4>Lets divide Full stack Development</h4> 
-        <ul>
-            <li>Frontend Development</li>
-            <li>Backend Development</li>
-            <li>Database</li>
-        </ul> 
-        <h2>Technologies Used for Full Stack Development</h2>
-        <table border="1">
-            <tr>
-                <td>Frontend</td> <td>Backend</td> <td>database</td>
-            </tr>
-            <tr>
-                <td>HTML</td> <td>Node.js</td> <td>MySQL</td>
-            </tr>
-            <tr>
-                <td>CSS</td> <td>Express.js</td> <td>Mongo</td>
-            </tr>
-        </table>
-        <center>
-        <p>
-            <a href="register.html">Register for Course</a> <a>Instagram</a> <a href="https://www.youtube.com/watch?v=FYErehuSuuw">Youtube</a>
-        </p>
-        </center>
+<head>
+  <meta charset="UTF-8">
+  <title>Mini GitHub Viewer (Supabase)</title>
+  <style>
+    body { margin: 0; font-family: Arial; background: #111; color: #eee }
+    header { padding: 10px; background:#222; border-bottom:1px solid #333; }
+    .container { padding:15px; display:flex; flex-direction:column; gap:10px; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; }
+    input, button { padding:8px; border-radius:5px; border:none; }
+    button { background:#4a9eff; color:#000; cursor:pointer; }
+    #layout { display:grid; grid-template-columns:300px 1fr; gap:10px; height:80vh; }
+    #projects, #files { background:#1a1a1a; padding:10px; border-radius:6px; overflow:auto; }
+    .item { padding:6px; margin:4px 0; background:#222; border-radius:4px; cursor:pointer; }
+    #viewer { background:#1a1a1a; padding:10px; border-radius:6px; white-space:pre; overflow:auto; }
+  </style>
+</head>
+<body>
 
-    </body>
+<header><h2>Mini GitHub — Supabase Version</h2></header>
 
+<div class="container">
+
+  <div class="row">
+    <input id="projectName" placeholder="Project Name" />
+    <input type="file" id="folder" webkitdirectory multiple />
+    <button id="uploadBtn">Upload Folder</button>
+    <button id="refreshBtn">Refresh</button>
+  </div>
+
+  <div id="layout">
+    <div>
+      <h3>Projects</h3>
+      <div id="projects"></div>
+      <h3>Files</h3>
+      <div id="files"></div>
+    </div>
+
+    <div id="viewer">Select a file…</div>
+  </div>
+
+</div>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  // -----------------------------------
+  // 🔥 INSERT YOUR KEYS HERE
+  // -----------------------------------
+  const supabaseUrl = "https://emiconnbgiifgnfituew.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtaWNvbm5iZ2lpZmduZml0dWV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNjUwMTMsImV4cCI6MjA3OTc0MTAxM30.4ix4M6UCzIYwvQWz-dGVAt7OKi1X6J7m_viLk-NTTNk";
+
+ const supabase = createClient(supabaseUrl, supabaseKey);
+
+  const projectNameInput = document.getElementById("projectName");
+  const folderInput = document.getElementById("folder");
+  const uploadBtn = document.getElementById("uploadBtn");
+  const refreshBtn = document.getElementById("refreshBtn");
+  const projectsEl = document.getElementById("projects");
+  const filesEl = document.getElementById("files");
+  const viewer = document.getElementById("viewer");
+
+  // -----------------------------------
+  // 🚀 UPLOAD FOLDER (FINAL VERSION)
+  // -----------------------------------
+  uploadBtn.onclick = async () => {
+    const files = folderInput.files;
+    const project = projectNameInput.value.trim();
+
+    if (!files.length) return alert("Choose a folder.");
+    if (!project) return alert("Enter project name.");
+
+    uploadBtn.textContent = "Uploading...";
+
+    for (const file of files) {
+
+      // --------------------------------------
+      // ⏭ SKIP .git FOLDER FILES AUTOMATICALLY
+      // --------------------------------------
+      if (file.webkitRelativePath.includes(".git")) {
+        console.log("⏭ Skipping git file:", file.webkitRelativePath);
+        continue;
+      }
+
+      const storagePath = `${project}/${file.webkitRelativePath}`;
+
+      console.log("📦 Uploading file to storage:", storagePath);
+
+      // Upload file to Supabase Storage bucket "projects"
+      const uploadRes = await supabase.storage
+        .from("projects")
+        .upload(storagePath, file, { upsert: true });
+
+      console.log("📤 Storage upload result:", uploadRes);
+
+      if (uploadRes.error) {
+        console.error("❌ Storage upload error:", uploadRes.error);
+        continue;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("projects")
+        .getPublicUrl(storagePath);
+
+      console.log("🌐 Public URL:", urlData.publicUrl);
+
+      // --------------------------------------
+      // 📝 INSERT FILE META INTO DATABASE
+      // --------------------------------------
+      console.log("📝 Inserting metadata:", file.name);
+
+      const r = await supabase.from("files").insert({
+        project,
+        path: file.webkitRelativePath,
+        url: urlData.publicUrl,
+        name: file.name,
+        size: file.size
+      });
+
+      console.log("📥 Insert result:", r);
+
+      if (r.error) {
+        console.error("❌ Insert error:", r.error);
+      }
+    }
+
+    uploadBtn.textContent = "Upload Folder";
+    folderInput.value = "";
+    projectNameInput.value = "";
+
+    alert("Uploaded!");
+    loadProjects();
+  };
+
+  // -----------------------------------
+  // 📚 LOAD PROJECT LIST
+  // -----------------------------------
+  async function loadProjects() {
+    projectsEl.innerHTML = "Loading...";
+
+    const { data, error } = await supabase
+      .from("files")
+      .select("project");
+
+    console.log("📚 Load projects:", data, error);
+
+    if (error) {
+      console.error("❌ Project load error:", error);
+      projectsEl.innerHTML = "Error loading projects!";
+      return;
+    }
+
+    const names = [...new Set(data.map(x => x.project))];
+
+    projectsEl.innerHTML = "";
+    names.forEach(name => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.textContent = name;
+      div.onclick = () => loadFiles(name);
+      projectsEl.appendChild(div);
+    });
+  }
+
+  // -----------------------------------
+  // 📄 LOAD FILE LIST FOR A PROJECT
+  // -----------------------------------
+  async function loadFiles(project) {
+    filesEl.innerHTML = "Loading...";
+
+    const { data, error } = await supabase
+      .from("files")
+      .select()
+      .eq("project", project);
+
+    console.log("📄 Files for project:", project, data, error);
+
+    if (error) {
+      console.error("❌ Error loading files:", error);
+      filesEl.innerHTML = "Error loading files!";
+      return;
+    }
+
+    filesEl.innerHTML = "";
+    data.sort((a, b) => a.path.localeCompare(b.path));
+
+    data.forEach(file => {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.textContent = file.path;
+      div.onclick = () => openFile(file);
+      filesEl.appendChild(div);
+    });
+  }
+
+  // -----------------------------------
+  // 📂 OPEN FILE & LOAD CONTENT
+  // -----------------------------------
+  async function openFile(file) {
+    console.log("📂 Opening file:", file.url);
+
+    const res = await fetch(file.url);
+    const text = await res.text();
+
+    viewer.textContent = text;
+  }
+
+  refreshBtn.onclick = loadProjects;
+  loadProjects();
+</script>
+
+</body>
 </html>
